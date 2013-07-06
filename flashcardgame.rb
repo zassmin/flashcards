@@ -100,11 +100,12 @@ class GameController
   end
 
   def start_game
-    @current_card = deck.flashcards.first
-    definition = deck.flashcards.first.definition
+    @current_card = deck.flashcards.sample
+    definition = @current_card.definition
     display(definition)
     input_guess
     check_guess(gameview_guess)
+    remove_card
   end
 
   def check_guess(guess)
