@@ -9,7 +9,7 @@ module FileParsing
         file_data << row
       end
     end 
-    parse_data(file_data)
+    file_data
   end
 
   def parse_data(file_data)
@@ -30,14 +30,21 @@ end
 
 class Deck
 
-  private
+  include FileParsing
 
   attr_accessor :flashcards
-
-  public
+  # private :flashcards
 
   def initialize
-    flashcards = []
+    @flashcards = []
+  end
+
+  # refactor to use Struct??
+  def fill_flashcards
+    raw_file_array = read_file
+    parse_data(raw_file_array).each do |flashcard_array|
+      add_flashcard(FlashCard.new(flashcard_array[0],flashcard_array[1]))
+    end
   end
 
   def add_flashcard(flashcard)
@@ -53,8 +60,8 @@ module GameView
     @gameview_guess = ''
   end
 
-  def display_card_definition(card)
-    puts "#{card.definition}"
+  def display(str)
+    puts "#{str}"
   end
 
   def input_guess
@@ -76,29 +83,41 @@ end
 class GameController
   include GameView
 
-  attr_accessor :deck
+  attr_accessor :deck, :graveyard_deck
   
   def initialize
     super
+    @graveyard_deck = []
   end
 
-  def create_game(deck)
-    @deck = deck
+  def create_game
+    @deck = Deck.new
+    deck.fill_flashcards
   end
 
-  def grab_card
-    @graveyard_deck << deck.shift
+  def remove_card
+    graveyard_deck << deck.flashcards.shift
+  end
+
+  def start_game
+    @current_card = deck.flashcards.first
+    definition = deck.flashcards.first.definition
+    display(definition)
+    input_guess
+    check_guess(gameview_guess)
   end
 
   def check_guess(guess)
-    if guess == @card.term
-      correct_answer
-    else
+    until gameview_guess == @current_card.term
       incorrect_answer
       input_guess
-    end
+    end 
+    correct_answer
   end
-
-
 end
 
+learn_programming = GameController.new
+learn_programming.create_game
+# p learn_programming.grab_card
+# p learn_programming.graveyard_deck
+learn_programming.start_game
